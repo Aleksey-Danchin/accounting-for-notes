@@ -1,0 +1,38 @@
+---
+description: NestJS backend conventions for apps/backend
+globs: apps/backend/**
+alwaysApply: false
+---
+
+# Backend (`apps/backend`)
+
+NestJS API. Stay inside `apps/backend` unless the task needs Prisma or infra.
+
+## Stack
+
+- NestJS 11, TypeScript, Jest, ESLint, Prettier
+- Entry: `src/main.ts`, root module: `src/app.module.ts`
+
+## Conventions
+
+- Domain modules under `src/<domain>/` with `*.module.ts`, `*.controller.ts`, `*.service.ts`.
+- DTOs and validation next to the controller or in `dto/`.
+- Business logic in services, not controllers.
+- Tests: `*.spec.ts` next to code; e2e in `test/`.
+- Do not edit generated Prisma Client here — schema lives in `apps/prisma`.
+
+## Commands (from `apps/backend`)
+
+```bash
+npm run start:dev
+npm run lint
+npm run test
+npm run build
+```
+
+## TODO
+
+- Auth / guards / pipes
+- Layering if repositories / use-cases appear
+- API contracts and versioning
+- Link to Prisma service / shared package

@@ -1,0 +1,46 @@
+---
+description: File policy — where files belong and what not to create
+alwaysApply: true
+---
+
+# File policy
+
+## App boundaries
+
+- API code only in `apps/backend`.
+- UI only in `apps/frontend`.
+- DB schema, migrations, and Prisma client config only in `apps/prisma`.
+- Docker / Compose / Traefik only in `infra/`.
+- Do not duplicate `schema.prisma`, Dockerfiles, or env templates outside their canonical locations.
+
+## Where to put new files
+
+| Kind | Location |
+|------|----------|
+| Nest module / service / controller | `apps/backend/src/<domain>/` |
+| Frontend component / page | `apps/frontend/` (layout TODO) |
+| Prisma model / migration | `apps/prisma/` |
+| Compose / Dockerfile | `infra/compose`, `infra/docker` |
+| Cursor rules | `.cursor/rules/*.mdc` |
+| Root README / docs | repo root or `docs/` (TODO) |
+
+## Forbidden without an explicit ask
+
+- New top-level packages outside `apps/` and `infra/`.
+- Committing `node_modules`, lockfile noise as duplicates, or build artifacts.
+- Creating `.env` with secrets; only `.env.example` without secrets.
+- Dropping scratch scripts in the repo root — TODO: scratch dir (e.g. `.temp/`) or keep untracked.
+- Hand-editing generated code (Prisma Client, `dist`).
+
+## Naming (stub)
+
+- TODO: kebab-case vs camelCase for files
+- TODO: Nest suffixes (`*.module.ts`, `*.service.ts`, …)
+- TODO: frontend naming (components, hooks, styles)
+
+## TODO
+
+- Workspace manager (npm / pnpm / turbo) and root `package.json` location
+- Shared packages: path and import rule
+- Where e2e / Playwright / fixtures live
+- Policy for `AGENTS.md` / skills if added

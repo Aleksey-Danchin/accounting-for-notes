@@ -1,0 +1,36 @@
+---
+description: Prisma conventions for apps/prisma
+globs: apps/prisma/**
+alwaysApply: false
+---
+
+# Prisma (`apps/prisma`)
+
+Single place for DB schema, migrations, and client generation. Do not duplicate `schema.prisma` in backend/frontend.
+
+## Stack
+
+- TODO: Prisma version, DB provider (PostgreSQL, etc.)
+- TODO: generated client location and how apps import it
+
+## Conventions
+
+- Models and enums only in `apps/prisma` (usually `schema.prisma` or `prisma/schema.prisma`).
+- Schema changes via migrations — not by hand-editing prod DB.
+- Naming style (PascalCase models, camelCase fields) — TODO: lock in.
+- Backend uses the client from this package; frontend may use types only — never direct DB access.
+
+## Commands (from `apps/prisma` or root — clarify)
+
+```bash
+# TODO: npx prisma migrate dev
+# TODO: npx prisma generate
+# TODO: npx prisma studio
+```
+
+## TODO
+
+- Schema path and client output
+- Migration naming
+- Seed scripts
+- package.json / workspace link to backend

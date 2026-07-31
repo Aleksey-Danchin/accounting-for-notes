@@ -1,0 +1,41 @@
+---
+description: How local development works — Docker, env, run/test workflows
+alwaysApply: true
+---
+
+# Development
+
+How we develop day to day. Stack layout belongs in `init` / `file-policy`; this rule covers runtime workflow.
+
+## Local stack (stub)
+
+- Infra lives under `infra/` (Compose, Docker, Traefik).
+- Apps: `apps/backend`, `apps/frontend`, `apps/prisma`.
+- Prefer running services via the agreed Compose setup once it exists; do not invent ad-hoc containers without updating docs/rules.
+
+## Environment variables (stub)
+
+- Secrets never committed. Use `.env` locally; commit only `.env.example` without secrets.
+- Document new env vars (name, required/optional, which app) and propose a rules update per `init`.
+- TODO: canonical list of env vars per app and Compose.
+
+## Docker / Compose (stub)
+
+- Dockerfiles: `infra/docker`.
+- Compose files: `infra/compose`.
+- Traefik: `infra/traefik`.
+- TODO: how to start the full stack, which ports, hot-reload vs container rebuild.
+
+## Day-to-day habits
+
+- Change only what the task needs; match existing style in neighboring files.
+- Install dependencies inside the relevant `apps/<app>` unless a root workspace is defined.
+- Do not commit or push unless explicitly asked.
+
+## TODO
+
+- Root install / workspace commands (npm / pnpm / turbo / make)
+- Exact `docker compose` entrypoint and profiles
+- DB bootstrap and Prisma migrate in local flow
+- Frontend stack once chosen
+- Branch / commit message conventions (optional)

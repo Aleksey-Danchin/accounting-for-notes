@@ -1,0 +1,38 @@
+---
+description: Frontend conventions for apps/frontend
+globs: apps/frontend/**
+alwaysApply: false
+---
+
+# Frontend (`apps/frontend`)
+
+Client app. Stay inside `apps/frontend` unless the task needs backend or Prisma.
+
+## Stack
+
+- TODO: framework (React / Next / Vite, etc.)
+- TODO: styling and UI kit
+- TODO: routing, state, data-fetching
+
+## Conventions
+
+- Follow existing layout and patterns in `apps/frontend`.
+- Prefer functional components; extract hooks/utils when logic repeats.
+- API calls go through one client layer (do not scatter `fetch` in UI).
+- Do not hand-duplicate domain types if they already come from shared/Prisma — TODO: type source.
+
+## Commands (from `apps/frontend`)
+
+```bash
+# TODO: npm run dev
+# TODO: npm run lint
+# TODO: npm run test
+# TODO: npm run build
+```
+
+## TODO
+
+- Folder layout (`src/components`, `src/pages`, `src/features`, …)
+- Naming and style conventions
+- Public API URL env vars
+- Client-side auth

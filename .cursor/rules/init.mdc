@@ -1,0 +1,49 @@
+---
+description: Session bootstrap — orientation, meta-policy for rules sync
+alwaysApply: true
+---
+
+# Init
+
+This rule always applies. Orient first, then change code.
+
+## Before work
+
+1. Identify the layer: `backend` / `frontend` / `prisma` / `infra` / docs / rules.
+2. Follow `file-policy` and the matching app rule (`backend`, `frontend`, `prisma`).
+3. If an app directory does not exist yet, do not invent the stack — ask or leave TODOs.
+4. Do not commit or push unless explicitly asked.
+
+## Project context
+
+- Repo: accounting-for-notes — task platform with accounting and reports.
+- Monorepo: `apps/backend` (NestJS), `apps/frontend`, `apps/prisma`, `infra/`.
+- Early stage: prefer simple stubs over premature architecture.
+
+## Rules language
+
+All files under `.cursor/rules/` MUST be written in English.
+
+## Rules sync (meta)
+
+When a change affects any of the following, treat it as both a codebase/infra change **and** a potential rules update:
+
+- dependencies and package manager setup
+- path aliases / tsconfig paths / import conventions
+- file layout or file policy
+- environment variables (names, required vs optional, where documented)
+- run/build/test scripts and local bootstrap
+- app or infra boundaries (`apps/*`, `infra/`)
+
+Before finishing such work: list impacted rules and propose concrete rule edits.
+
+## Changing rules
+
+Do **not** edit `.cursor/rules/` until the programmer has reviewed and approved the proposed rule changes in chat. Discuss first; apply only after explicit approval.
+
+## TODO
+
+- Primary install command
+- Local bootstrap (Compose / DB / env)
+- Post-clone ready checklist
+- Canonical docs / ADR links
