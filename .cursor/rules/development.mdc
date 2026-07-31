@@ -5,37 +5,31 @@ alwaysApply: true
 
 # Development
 
-How we develop day to day. Stack layout belongs in `init` / `file-policy`; this rule covers runtime workflow.
+Runtime and local bootstrap. File layout → `file-policy`. Prisma migrate details → `prisma`. Session meta → `init`.
 
-## Local stack (stub)
+## Host-only development
 
-- Infra lives under `infra/` (Compose, Docker, Traefik).
-- Apps: `apps/backend`, `apps/frontend`, `apps/prisma`.
-- Prefer running services via the agreed Compose setup once it exists; do not invent ad-hoc containers without updating docs/rules.
+- Codebase work on the host: edits, `npm install`, lint, tests, Nest scaffolding (`npx nest g …`).
+- Containers are runtime only (bind-mounted app dirs). Do **not** install packages or mutate the tree inside a container unless the programmer explicitly asks, or a project script is designed for it (e.g. `./scripts/prisma-migration`, `./scripts/prisma-seed`).
+- Never scaffold Nest files inside a container (chown / permission issues) — details in `backend` rule.
+- `node_modules` come from the host — never `npm install` in a running app container by default.
+- Install dependencies in the relevant `apps/<app>` on the host.
 
-## Environment variables (stub)
+## Local stack
 
-- Secrets never committed. Use `.env` locally; commit only `.env.example` without secrets.
-- Document new env vars (name, required/optional, which app) and propose a rules update per `init`.
-- TODO: canonical list of env vars per app and Compose.
+- Start/stop: `./scripts/dev-up.sh` / `./scripts/dev-down.sh` (mkcert + `infra/compose/dev.yml`).
+- URLs: `https://afn.localhost` → frontend; `https://afn.localhost/api` → backend; `https://afn.localhost:5555` → Prisma Studio. HTTP → HTTPS (including studio port).
+- Healthchecks are required on every Compose service.
+- Infra paths (Dockerfiles, Traefik, certs) and volume RO policy → `file-policy`.
 
-## Docker / Compose (stub)
+## Environment variables
 
-- Dockerfiles: `infra/docker`.
-- Compose files: `infra/compose`.
-- Traefik: `infra/traefik`.
-- TODO: how to start the full stack, which ports, hot-reload vs container rebuild.
+- Root `.env` (see `.env.example`). Secrets never committed.
+- Compose passes selected vars; `DATABASE_URL` for backend / Prisma Studio is composed in `dev.yml` from `POSTGRES_*`.
+- Frontend Vite reads `VITE_*` from the repo root (`.env` / `.env.example`: `VITE_API_BASE_URL`, `VITE_API_CONCURRENCY`).
 
-## Day-to-day habits
+## Prisma
 
-- Change only what the task needs; match existing style in neighboring files.
-- Install dependencies inside the relevant `apps/<app>` unless a root workspace is defined.
-- Do not commit or push unless explicitly asked.
-
-## TODO
-
-- Root install / workspace commands (npm / pnpm / turbo / make)
-- Exact `docker compose` entrypoint and profiles
-- DB bootstrap and Prisma migrate in local flow
-- Frontend stack once chosen
-- Branch / commit message conventions (optional)
+- Migrations: `./scripts/prisma-migration <name>` — full behavior in `prisma` rule.
+- Seed (destructive reset): `./scripts/prisma-seed` — full behavior in `prisma` rule.
+- Generated client path: `apps/prisma/generated/prisma/` (gitignored).

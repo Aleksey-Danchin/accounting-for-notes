@@ -16,6 +16,12 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    "paths": {
+      "__frontend/*": ["./src/*"],
+      "__prisma/*": ["../prisma/*"],
+      "__backend/*": ["../backend/*"]
+    },
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,

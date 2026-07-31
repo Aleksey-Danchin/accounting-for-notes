@@ -10,29 +10,44 @@ NestJS API. Stay inside `apps/backend` unless the task needs Prisma or infra.
 
 ## Stack
 
-- NestJS 11, TypeScript, Jest, ESLint, Prettier
+- NestJS 11, TypeScript, Jest, ESLint, Prettier, **tsx** (dev and Compose runtime — not `nest start` / webpack)
 - Entry: `src/main.ts`, root module: `src/app.module.ts`
+- Runtime in Compose: `tsx watch`. Use `@Inject(...)` for constructor DI under tsx.
+- Prisma: `PrismaService` extends generated client with **`Pool` + `@prisma/adapter-pg`**; disconnect with `$disconnect()` and `pool.end()`.
+- Prisma access via `__prisma/*` path alias only — **never** add `apps/prisma` as an npm/workspace package dependency of backend.
+- Client import: `__prisma/generated/prisma/client`. Public shapes: `__prisma/types/...` (e.g. `PublicUser`).
+- Jest: `moduleNameMapper` for `^__prisma/(.*)$` → `<rootDir>/../prisma/$1` (unit and e2e configs).
+
+## Scaffolding (host only)
+
+- Create Nest entities **only** with Nest CLI on the **host** (never inside a container), e.g. `npx nest g module|controller|provider|service … --no-spec`.
+- Reason: avoid root-owned files and `permission denied` / git chown issues from container writes.
+- After generate, fill in logic in the created files — do not hand-create parallel `*.module.ts` / `*.controller.ts` / `*.provider.ts` trees.
 
 ## Conventions
 
-- Domain modules under `src/<domain>/` with `*.module.ts`, `*.controller.ts`, `*.service.ts`.
+- Domain modules under `src/<domain>/`.
+- One concrete provider/service class — **no** separate abstract interface + `*Impl` pair unless explicitly requested.
+- Prefer Nest names from CLI (`*.provider.ts`, `*.service.ts`, `*.controller.ts`, `*.module.ts`).
 - DTOs and validation next to the controller or in `dto/`.
-- Business logic in services, not controllers.
+- Business logic in providers/services, not controllers.
+- Do not return secrets (e.g. `passwordHash`) from API providers — use `PublicUser` / explicit `select`.
 - Tests: `*.spec.ts` next to code; e2e in `test/`.
 - Do not edit generated Prisma Client here — schema lives in `apps/prisma`.
+- Frontend may `import type` contracts from `__backend/...` (e.g. `UsersProvider` for `ReturnType<…>`).
 
-## Commands (from `apps/backend`)
+## Commands (from `apps/backend` on the host)
 
 ```bash
+npx nest g module <name> --no-spec
+npx nest g controller <name> --no-spec
+npx nest g provider <name> --no-spec
 npm run start:dev
 npm run lint
 npm run test
-npm run build
 ```
 
 ## TODO
 
 - Auth / guards / pipes
-- Layering if repositories / use-cases appear
 - API contracts and versioning
-- Link to Prisma service / shared package

@@ -10,29 +10,34 @@ Client app. Stay inside `apps/frontend` unless the task needs backend or Prisma.
 
 ## Stack
 
-- TODO: framework (React / Next / Vite, etc.)
-- TODO: styling and UI kit
-- TODO: routing, state, data-fetching
+- Vite + React 19, TypeScript, ESLint (flat config)
+- TanStack Router (file routes under `src/routes/` with `~` prefix; generated tree in `src/global/routeTree.gen.ts`)
+- TanStack Query (`src/global/queryClient.ts`)
+- Tailwind CSS 4 + DaisyUI (`src/index.css`)
+- HTTP: axios + concurrency limit in `src/services/api/` (`apiClient`, `apiConfig`)
+- Path aliases: `__frontend/*` → `src/*`, `__backend/*` → `../backend/*`, `__prisma/*` → `../prisma/*`
+- Vite `envDir` is the repo root; use `VITE_API_BASE_URL` (default `/api`) and optional `VITE_API_CONCURRENCY`
+- Compose: Vite bound to `0.0.0.0:5173`
 
 ## Conventions
 
-- Follow existing layout and patterns in `apps/frontend`.
 - Prefer functional components; extract hooks/utils when logic repeats.
-- API calls go through one client layer (do not scatter `fetch` in UI).
-- Do not hand-duplicate domain types if they already come from shared/Prisma — TODO: type source.
+- API calls go through `services/api` / feature helpers (e.g. `global/usersApi`) — do not scatter `fetch`/`axios` in UI.
+- Domain public types from `__prisma/types/...` (e.g. `PublicUser`); backend contracts via `__backend/...` type imports when needed.
+- Layout: `src/routes/` (pages), `src/global/` (router, query client, shared API helpers), `src/services/` (api and future domains).
+- Do not add session/auth interceptors until a session backend exists.
 
 ## Commands (from `apps/frontend`)
 
 ```bash
-# TODO: npm run dev
-# TODO: npm run lint
-# TODO: npm run test
-# TODO: npm run build
+npm run dev
+npm run lint
+npm run build
+npm run preview
 ```
 
 ## TODO
 
-- Folder layout (`src/components`, `src/pages`, `src/features`, …)
 - Naming and style conventions
-- Public API URL env vars
-- Client-side auth
+- Client-side auth / session (when backend session exists)
+- Feature folder layout beyond routes/global/services

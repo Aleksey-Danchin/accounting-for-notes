@@ -10,15 +10,17 @@ This rule always applies. Orient first, then change code.
 ## Before work
 
 1. Identify the layer: `backend` / `frontend` / `prisma` / `infra` / docs / rules.
-2. Follow `file-policy` and the matching app rule (`backend`, `frontend`, `prisma`).
+2. Follow `file-policy`, `development` (if touching local stack), and the matching app rule (`backend`, `frontend`, `prisma`).
 3. If an app directory does not exist yet, do not invent the stack — ask or leave TODOs.
 4. Do not commit or push unless explicitly asked.
+5. Change only what the task needs; match existing style in neighboring files.
 
 ## Project context
 
 - Repo: accounting-for-notes — task platform with accounting and reports.
-- Monorepo: `apps/backend` (NestJS), `apps/frontend`, `apps/prisma`, `infra/`.
+- Monorepo: `apps/backend` (NestJS), `apps/frontend`, `apps/prisma`, `infra/`, `scripts/`.
 - Early stage: prefer simple stubs over premature architecture.
+- Local bootstrap: `./scripts/dev-up.sh` (details in `development`).
 
 ## Rules language
 
@@ -33,7 +35,7 @@ When a change affects any of the following, treat it as both a codebase/infra ch
 - file layout or file policy
 - environment variables (names, required vs optional, where documented)
 - run/build/test scripts and local bootstrap
-- app or infra boundaries (`apps/*`, `infra/`)
+- app or infra boundaries (`apps/*`, `infra/`, `scripts/`)
 
 Before finishing such work: list impacted rules and propose concrete rule edits.
 
@@ -43,7 +45,6 @@ Do **not** edit `.cursor/rules/` until the programmer has reviewed and approved 
 
 ## TODO
 
-- Primary install command
-- Local bootstrap (Compose / DB / env)
-- Post-clone ready checklist
+- Primary install command (post-clone)
 - Canonical docs / ADR links
+- Branch / commit message conventions (optional)
