@@ -1,0 +1,56 @@
+---
+description: Prisma conventions for apps/prisma
+globs: apps/prisma/**
+alwaysApply: false
+---
+
+# Prisma (`apps/prisma`)
+
+Single place for DB schema, migrations, and client generation. Do not duplicate `schema.prisma` in backend/frontend.
+
+## Stack
+
+- Prisma 7, PostgreSQL (`@prisma/adapter-pg`)
+- Config: `prisma.config.ts`; schema dir: `schema/`
+- Generated client output: `generated/prisma/` (`generator` output `../generated/prisma`)
+- Generator must set `importFileExtension = "ts"` (required for backend `moduleResolution: nodenext` + `tsx`)
+- Migrations: `migrations/`
+- Seed: `seed.ts` + `seeders/`; wired in `prisma.config.ts` as `seed: "tsx seed.ts"`
+- Public DTO types: `types/` (e.g. `PublicUser`); gitignore `/generated/prisma` (do not commit the client)
+
+## Conventions
+
+- Models and enums only under `apps/prisma/schema/`.
+- Naming: PascalCase models, camelCase fields.
+- Backend loads the client via `__prisma/generated/prisma/client`; frontend may use types only (`__prisma/types/...`) — never direct DB access.
+- Do not hand-edit generated client or applied migration SQL unless explicitly asked.
+
+## Migrations (`./scripts/prisma-migration`)
+
+Preferred way to change schema in dev (stack must be up; `prisma-studio` healthy):
+
+```bash
+./scripts/prisma-migration <name_for_migration>
+```
+
+Behavior:
+
+- Runs `prisma migrate dev --create-only`, then `prisma migrate deploy`, then `prisma generate` as **root** inside the `prisma-studio` container (Prisma 7 refuses interactive `migrate dev` under non-TTY / CI).
+- On exit (**success or failure**): `chown -R` the **entire** `/prisma` tree (not only `generated/` / `migrations/`) to the host user — Prisma also writes caches under `node_modules/.cache` as root — then **restart `prisma-studio`**.
+- Do not run ad-hoc `prisma migrate` / `prisma generate` inside containers outside this script unless explicitly asked.
+
+## Seed (`./scripts/prisma-seed`)
+
+```bash
+./scripts/prisma-seed
+```
+
+Resets the DB (`migrate reset --force`), generates the client, and runs `prisma db seed` in `prisma-studio`, then `chown -R` on `/prisma` + restart. Destructive — use deliberately.
+
+## Studio UI
+
+- `https://afn.localhost:5555` (HTTP redirects to HTTPS on the same port)
+
+## TODO
+
+- package.json / workspace link to backend

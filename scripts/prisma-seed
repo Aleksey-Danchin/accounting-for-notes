@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Usage: ./scripts/prisma-seed
+# Resets DB, generates client, and runs seed inside prisma-studio.
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMPOSE_FILE="${ROOT_DIR}/infra/compose/dev.yml"
+ENV_FILE="${ROOT_DIR}/.env"
+SERVICE="prisma-studio"
+HOST_UID="$(id -u)"
+HOST_GID="$(id -g)"
+
+log() { printf '%s\n' "$*"; }
+die() { printf 'error: %s\n' "$*" >&2; exit 1; }
+
+compose() {
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" "$@"
+}
+
+require_studio() {
+  local status
+  status="$(compose ps --status running --services 2>/dev/null | grep -x "${SERVICE}" || true)"
+  [[ -n "${status}" ]] || die "${SERVICE} is not running. Start the stack with ./scripts/dev-up.sh first."
+}
+
+fix_prisma_permissions() {
+  log "Fixing ownership of /prisma → ${HOST_UID}:${HOST_GID}..."
+  compose exec -u root -T "${SERVICE}" sh -c "
+    chown -R ${HOST_UID}:${HOST_GID} /prisma
+  " || log "warning: could not fix ownership via ${SERVICE} (container may be unavailable)"
+}
+
+restart_prisma_studio() {
+  log "Restarting ${SERVICE} (Studio has no hot schema reload)..."
+  compose restart "${SERVICE}" \
+    || log "warning: could not restart ${SERVICE}"
+}
+
+cleanup() {
+  fix_prisma_permissions
+  restart_prisma_studio
+}
+
+[[ -f "${ENV_FILE}" ]] || die "Missing ${ENV_FILE}."
+require_studio
+
+trap cleanup EXIT
+
+log "Running prisma migrate reset --force in ${SERVICE}..."
+compose exec -u root -T "${SERVICE}" npx prisma migrate reset --force
+
+log "Running prisma generate in ${SERVICE}..."
+compose exec -u root -T "${SERVICE}" npx prisma generate
+
+log "Running prisma db seed in ${SERVICE}..."
+compose exec -u root -T "${SERVICE}" npx prisma db seed

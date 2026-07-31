@@ -1,0 +1,61 @@
+http:
+  middlewares:
+    studio-https-redirect:
+      redirectRegex:
+        regex: "^http://([^/]+)(.*)"
+        replacement: "https://${1}${2}"
+        permanent: true
+
+  routers:
+    frontend:
+      rule: Host(`afn.localhost`)
+      entryPoints:
+        - websecure
+      service: frontend
+      tls: {}
+      priority: 1
+
+    backend:
+      rule: Host(`afn.localhost`) && PathPrefix(`/api`)
+      entryPoints:
+        - websecure
+      service: backend
+      tls: {}
+      priority: 20
+
+    # Plain HTTP on :5555 → HTTPS (same port)
+    prisma-studio-http:
+      rule: Host(`afn.localhost`)
+      entryPoints:
+        - studio
+      middlewares:
+        - studio-https-redirect
+      service: prisma-studio
+
+    prisma-studio:
+      rule: Host(`afn.localhost`)
+      entryPoints:
+        - studio
+      service: prisma-studio
+      tls: {}
+
+  services:
+    frontend:
+      loadBalancer:
+        servers:
+          - url: http://frontend:5173
+
+    backend:
+      loadBalancer:
+        servers:
+          - url: http://backend:3000
+
+    prisma-studio:
+      loadBalancer:
+        servers:
+          - url: http://prisma-studio:5555
+
+tls:
+  certificates:
+    - certFile: /certs/afn.localhost.pem
+      keyFile: /certs/afn.localhost-key.pem

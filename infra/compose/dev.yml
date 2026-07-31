@@ -1,0 +1,159 @@
+name: afn-dev
+
+services:
+  traefik:
+    image: traefik:v3.5
+    restart: unless-stopped
+    command:
+      # File provider only: Docker Engine 29+ breaks Traefik's docker client (API 1.24 vs min 1.44).
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --providers.file.watch=true
+      - --ping=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.studio.address=:5555
+    ports:
+      - "80:80"
+      - "443:443"
+      - "5555:5555"
+    volumes:
+      - ../traefik/dynamic:/etc/traefik/dynamic:ro
+      - ../traefik/certs:/certs:ro
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - afn
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Moscow}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - afn
+
+  backend:
+    build:
+      context: ../docker
+      dockerfile: Dockerfile.backend
+      args:
+        TZ: ${TZ:-Europe/Moscow}
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /backend
+    environment:
+      TZ: ${TZ:-Europe/Moscow}
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${BACKEND_PORT:-3000}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    volumes:
+      - ../../apps/backend:/backend
+      - ../../apps/prisma:/prisma:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/users').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - afn
+
+  frontend:
+    build:
+      context: ../docker
+      dockerfile: Dockerfile.frontend
+      args:
+        TZ: ${TZ:-Europe/Moscow}
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /frontend
+    environment:
+      TZ: ${TZ:-Europe/Moscow}
+      NODE_ENV: ${NODE_ENV:-development}
+    volumes:
+      - ../../apps/frontend:/frontend
+      - ../../apps/backend:/backend:ro
+      - ../../apps/prisma:/prisma:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:5173/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - afn
+
+  prisma-studio:
+    build:
+      context: ../docker
+      dockerfile: Dockerfile.prisma
+      args:
+        TZ: ${TZ:-Europe/Moscow}
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /prisma
+    environment:
+      TZ: ${TZ:-Europe/Moscow}
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    volumes:
+      - ../../apps/prisma:/prisma
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:5555/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - afn
+
+networks:
+  afn:
+    driver: bridge
+
+volumes:
+  postgres_data:
