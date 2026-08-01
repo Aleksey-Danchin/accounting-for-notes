@@ -8,13 +8,7 @@ export class UsersProvider {
 
   getUsers(): Promise<PublicUser[]> {
     return this.prisma.user.findMany({
-      orderBy: { login: 'asc' },
-      select: {
-        id: true,
-        login: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      orderBy: { email: 'asc' },
     });
   }
 }

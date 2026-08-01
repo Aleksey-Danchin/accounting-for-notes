@@ -22,7 +22,10 @@ Single place for DB schema, migrations, and client generation. Do not duplicate 
 
 - Models and enums only under `apps/prisma/schema/`.
 - Naming: PascalCase models, camelCase fields.
+- `User` identity field is `email` (`@unique`), not `login`.
 - Backend loads the client via `__prisma/generated/prisma/client`; frontend may use types only (`__prisma/types/...`) — never direct DB access.
+- Backend `PrismaService` must set Client `omit: { user: { passwordHash: true } }` so hashes are never returned by default; override omit only when verifying passwords.
+- Public shape: `types/public-user.ts` → `Omit<User, 'passwordHash'>`.
 - Do not hand-edit generated client or applied migration SQL unless explicitly asked.
 
 ## Migrations (`./scripts/prisma-migration`)

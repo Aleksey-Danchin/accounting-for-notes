@@ -6,7 +6,7 @@ export class UsersController {
   constructor(@Inject(UsersProvider) private readonly users: UsersProvider) {}
 
   @Get()
-  getUsers() {
+  getUsers(): ReturnType<UsersProvider['getUsers']> {
     return this.users.getUsers();
   }
 }

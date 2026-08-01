@@ -18,15 +18,25 @@ Runtime and local bootstrap. File layout → `file-policy`. Prisma migrate detai
 ## Local stack
 
 - Start/stop: `./scripts/dev-up.sh` / `./scripts/dev-down.sh` (mkcert + `infra/compose/dev.yml`).
+- Services: Traefik, Postgres, **Redis**, backend, frontend, Prisma Studio.
 - URLs: `https://afn.localhost` → frontend; `https://afn.localhost/api` → backend; `https://afn.localhost:5555` → Prisma Studio. HTTP → HTTPS (including studio port).
 - Healthchecks are required on every Compose service.
 - Infra paths (Dockerfiles, Traefik, certs) and volume RO policy → `file-policy`.
+- Redis conventions (keys, ioredis, env) → `redis` rule.
 
 ## Environment variables
 
 - Root `.env` (see `.env.example`). Secrets never committed.
 - Compose passes selected vars; `DATABASE_URL` for backend / Prisma Studio is composed in `dev.yml` from `POSTGRES_*`.
+- Redis: `REDIS_PASSWORD`, `REDIS_PORT`; backend receives `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`.
+- Cookie domain for auth: `COOKIE_DOMAIN` (e.g. `afn.localhost`) → Compose → backend.
 - Frontend Vite reads `VITE_*` from the repo root (`.env` / `.env.example`: `VITE_API_BASE_URL`, `VITE_API_CONCURRENCY`).
+
+## Validation schemas (zod)
+
+- Zod schemas and runtime validation live **only** in `apps/backend` (e.g. `src/auth/dto.ts` next to the controller).
+- Do **not** add `zod` as a frontend dependency.
+- Frontend may `import type` inferred DTOs via `__backend/...` (type-only; do not import schema values into the browser bundle).
 
 ## Prisma
 

@@ -5,12 +5,15 @@ import { RouterProvider } from "@tanstack/react-router";
 import { queryClient } from "./global/queryClient";
 import { router } from "./global/router";
 import { getRoot } from "./global/getRoot";
+import { AuthBootstrap } from "__frontend/services/auth";
 import "./index.css";
 
 createRoot(getRoot()).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthBootstrap>
+        <RouterProvider router={router} />
+      </AuthBootstrap>
     </QueryClientProvider>
   </StrictMode>,
 );

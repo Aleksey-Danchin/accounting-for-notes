@@ -10,42 +10,56 @@
 
 import { Route as rootRouteImport } from './../routes/~__root'
 import { Route as IndexRouteImport } from './../routes/~index'
+import { Route as AuthTestIndexRouteImport } from './../routes/~auth-test/~index'
 import { Route as UsersIndexRouteImport } from './../routes/~users/~index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./../routes/~index.lazy').then((d) => d.Route))
+const AuthTestIndexRoute = AuthTestIndexRouteImport.update({
+  id: '/auth-test/',
+  path: '/auth-test/',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./../routes/~auth-test/~index.lazy').then((d) => d.Route),
+)
 const UsersIndexRoute = UsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import('./../routes/~users/~index.lazy').then((d) => d.Route),
+)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth-test/': typeof AuthTestIndexRoute
   '/users/': typeof UsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth-test': typeof AuthTestIndexRoute
   '/users': typeof UsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth-test/': typeof AuthTestIndexRoute
   '/users/': typeof UsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/users/'
+  fullPaths: '/' | '/auth-test/' | '/users/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/users'
-  id: '__root__' | '/' | '/users/'
+  to: '/' | '/auth-test' | '/users'
+  id: '__root__' | '/' | '/auth-test/' | '/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthTestIndexRoute: typeof AuthTestIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
 }
 
@@ -56,6 +70,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth-test/': {
+      id: '/auth-test/'
+      path: '/auth-test'
+      fullPath: '/auth-test/'
+      preLoaderRoute: typeof AuthTestIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/users/': {
@@ -70,6 +91,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthTestIndexRoute: AuthTestIndexRoute,
   UsersIndexRoute: UsersIndexRoute,
 }
 export const routeTree = rootRouteImport
