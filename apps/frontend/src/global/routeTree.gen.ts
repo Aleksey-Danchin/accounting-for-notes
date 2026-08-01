@@ -17,17 +17,21 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./../routes/~index.lazy').then((d) => d.Route))
 const AuthTestIndexRoute = AuthTestIndexRouteImport.update({
   id: '/auth-test/',
   path: '/auth-test/',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import('./../routes/~auth-test/~index.lazy').then((d) => d.Route),
+)
 const UsersIndexRoute = UsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import('./../routes/~users/~index.lazy').then((d) => d.Route),
+)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute

@@ -12,8 +12,9 @@ Client app. Stay inside `apps/frontend` unless the task needs backend or Prisma.
 
 - Vite + React 19, TypeScript, ESLint (flat config)
 - TanStack Router (file routes under `src/routes/` with `~` prefix; generated tree in `src/global/routeTree.gen.ts`)
-- Route pages **only via directories**: `routes/~<segment>/~index.tsx` (e.g. `~users/~index.tsx`, `~auth-test/~index.tsx`). Do **not** use flat files like `~auth-test.tsx` for a path segment.
-- Root exceptions only: `~__root.tsx`, `~index.tsx` (home `/`)
+- Route pages **only via directories**: `routes/~<segment>/~index.tsx` + `~index.lazy.tsx` (e.g. `~users/`). Do **not** use flat files like `~auth-test.tsx` for a path segment.
+- Every page is **lazy**: `~index.tsx` is a thin shell (`createFileRoute` + a no-op `loader: () => null` so `defaultPendingComponent` runs while the lazy chunk loads; real loaders/guards may replace that later); UI goes in `~index.lazy.tsx` via `createLazyFileRoute`. Extension is `.tsx` (JSX). Home `/` follows the same pair at `routes/~index.tsx` + `~index.lazy.tsx`. Exception: `~__root.tsx` (layout, not a lazy page).
+- Default lazy pending UI: `global/PagePending.tsx`, registered as router `defaultPendingComponent` (DaisyUI spinner, centered in the remaining viewport under the nav). Without a route `loader`/`beforeLoad`, TanStack keeps the previous page visible during chunk fetch — hence the no-op loader on shells.
 - TanStack Query (`src/global/queryClient.ts`)
 - Tailwind CSS 4 + DaisyUI (`src/index.css`)
 - HTTP: axios + concurrency limit in `src/services/api/` (`apiClient`, `apiConfig`)

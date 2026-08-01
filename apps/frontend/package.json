@@ -17,6 +17,7 @@
     "@tanstack/react-router-devtools": "^1.167.0",
     "@tanstack/router-plugin": "^1.168.18",
     "axios": "^1.17.0",
+    "jotai": "^2.20.2",
     "p-limit": "^7.3.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
