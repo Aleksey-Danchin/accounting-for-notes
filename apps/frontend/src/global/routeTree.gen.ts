@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './../routes/~__root'
 import { Route as IndexRouteImport } from './../routes/~index'
+import { Route as ActionsIndexRouteImport } from './../routes/~actions/~index'
 import { Route as AuthTestIndexRouteImport } from './../routes/~auth-test/~index'
 import { Route as NotesIndexRouteImport } from './../routes/~notes/~index'
 import { Route as TagsIndexRouteImport } from './../routes/~tags/~index'
@@ -21,6 +22,13 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./../routes/~index.lazy').then((d) => d.Route))
+const ActionsIndexRoute = ActionsIndexRouteImport.update({
+  id: '/actions/',
+  path: '/actions/',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./../routes/~actions/~index.lazy').then((d) => d.Route),
+)
 const AuthTestIndexRoute = AuthTestIndexRouteImport.update({
   id: '/auth-test/',
   path: '/auth-test/',
@@ -59,6 +67,7 @@ const NotesNoteIdIndexRoute = NotesNoteIdIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/actions/': typeof ActionsIndexRoute
   '/auth-test/': typeof AuthTestIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/tags/': typeof TagsIndexRoute
@@ -67,6 +76,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/actions': typeof ActionsIndexRoute
   '/auth-test': typeof AuthTestIndexRoute
   '/notes': typeof NotesIndexRoute
   '/tags': typeof TagsIndexRoute
@@ -76,6 +86,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/actions/': typeof ActionsIndexRoute
   '/auth-test/': typeof AuthTestIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/tags/': typeof TagsIndexRoute
@@ -85,12 +96,26 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth-test/' | '/notes/' | '/tags/' | '/users/' | '/notes/$noteId/'
+    | '/'
+    | '/actions/'
+    | '/auth-test/'
+    | '/notes/'
+    | '/tags/'
+    | '/users/'
+    | '/notes/$noteId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth-test' | '/notes' | '/tags' | '/users' | '/notes/$noteId'
+  to:
+    | '/'
+    | '/actions'
+    | '/auth-test'
+    | '/notes'
+    | '/tags'
+    | '/users'
+    | '/notes/$noteId'
   id:
     | '__root__'
     | '/'
+    | '/actions/'
     | '/auth-test/'
     | '/notes/'
     | '/tags/'
@@ -100,6 +125,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActionsIndexRoute: typeof ActionsIndexRoute
   AuthTestIndexRoute: typeof AuthTestIndexRoute
   NotesIndexRoute: typeof NotesIndexRoute
   TagsIndexRoute: typeof TagsIndexRoute
@@ -114,6 +140,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/actions/': {
+      id: '/actions/'
+      path: '/actions'
+      fullPath: '/actions/'
+      preLoaderRoute: typeof ActionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth-test/': {
@@ -156,6 +189,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActionsIndexRoute: ActionsIndexRoute,
   AuthTestIndexRoute: AuthTestIndexRoute,
   NotesIndexRoute: NotesIndexRoute,
   TagsIndexRoute: TagsIndexRoute,

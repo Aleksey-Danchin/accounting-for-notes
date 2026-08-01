@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { ActionsModule } from '../actions/actions.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RedisModule } from '../redis/redis.module';
 import { AuthController } from './auth.controller';
@@ -6,7 +7,7 @@ import { AuthMiddleware } from './auth.middleware';
 import { AuthProvider } from './auth.provider';
 
 @Module({
-  imports: [PrismaModule, RedisModule],
+  imports: [PrismaModule, RedisModule, ActionsModule],
   controllers: [AuthController],
   providers: [AuthProvider, AuthMiddleware],
   exports: [AuthProvider],

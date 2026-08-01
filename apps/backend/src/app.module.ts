@@ -7,9 +7,10 @@ import { RedisModule } from './redis/redis.module';
 import { UsersModule } from './users/users.module';
 import { NotesModule } from './notes/notes.module';
 import { TagsModule } from './tags/tags.module';
+import { ActionsModule } from './actions/actions.module';
 
 @Module({
-  imports: [PrismaModule, RedisModule, AuthModule, UsersModule, NotesModule, TagsModule],
+  imports: [PrismaModule, RedisModule, AuthModule, UsersModule, NotesModule, TagsModule, ActionsModule],
   controllers: [AppController],
   providers: [AppService],
 })

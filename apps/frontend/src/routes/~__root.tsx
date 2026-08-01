@@ -19,6 +19,9 @@ export const Route = createRootRoute({
           <Link to="/tags" className="link link-hover">
             Tags
           </Link>
+          <Link to="/actions" className="link link-hover">
+            Actions
+          </Link>
           <Link to="/auth-test" className="link link-hover">
             Auth test
           </Link>

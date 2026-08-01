@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '__prisma/generated/prisma/client';
+import { ActionsProvider } from '../actions/actions.provider';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   AddRequisiteTagsDTO,
@@ -66,7 +67,10 @@ function toNullableJson(
 
 @Injectable()
 export class NotesProvider {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(ActionsProvider) private readonly actions: ActionsProvider,
+  ) {}
 
   listNotes(userId: string): Promise<NoteWithRequisites[]> {
     return this.prisma.note.findMany({
@@ -87,20 +91,32 @@ export class NotesProvider {
     return note;
   }
 
-  createNote(userId: string): Promise<NoteWithRequisites> {
-    return this.prisma.note.create({
+  async createNote(userId: string): Promise<NoteWithRequisites> {
+    const note = await this.prisma.note.create({
       data: { userId },
       include: noteInclude,
     });
+    await this.actions.record({
+      type: 'create_note',
+      userId,
+      noteId: note.id,
+    });
+    return note;
   }
 
   async deleteNote(userId: string, noteId: string): Promise<NoteWithRequisites> {
     await this.getNote(userId, noteId);
-    return this.prisma.note.update({
+    const note = await this.prisma.note.update({
       where: { id: noteId },
       data: { deletedAt: new Date() },
       include: noteInclude,
     });
+    await this.actions.record({
+      type: 'delete_note',
+      userId,
+      noteId,
+    });
+    return note;
   }
 
   async listRequisites(
@@ -147,7 +163,7 @@ export class NotesProvider {
     data: CreateRequisiteDTO,
   ): Promise<RequisiteWithTags> {
     await this.getNote(userId, noteId);
-    return this.prisma.$transaction(async (tx) => {
+    const created = await this.prisma.$transaction(async (tx) => {
       const payload = toNullableJson(data.payload);
       const createData: Prisma.RequisiteCreateInput = {
         name: data.name,
@@ -164,6 +180,13 @@ export class NotesProvider {
         include: requisiteWithTagsInclude,
       });
     });
+    await this.actions.record({
+      type: 'update_note',
+      userId,
+      noteId,
+      payload: { op: 'create_requisite', requisiteId: created.id },
+    });
+    return created;
   }
 
   async updateRequisite(
@@ -179,11 +202,18 @@ export class NotesProvider {
       ...(data.public !== undefined ? { public: data.public } : {}),
       ...(payload !== undefined ? { payload } : {}),
     };
-    return this.prisma.requisite.update({
+    const updated = await this.prisma.requisite.update({
       where: { id: requisiteId },
       data: updateData,
       include: requisiteWithTagsInclude,
     });
+    await this.actions.record({
+      type: 'update_note',
+      userId,
+      noteId,
+      payload: { op: 'update_requisite', requisiteId },
+    });
+    return updated;
   }
 
   async deleteRequisite(
@@ -205,6 +235,12 @@ export class NotesProvider {
         data: { deletedAt: now },
       }),
     ]);
+    await this.actions.record({
+      type: 'update_note',
+      userId,
+      noteId,
+      payload: { op: 'delete_requisite', requisiteId },
+    });
     return { ...requisite, deletedAt: now };
   }
 
@@ -252,6 +288,17 @@ export class NotesProvider {
       ),
     );
 
+    await this.actions.record({
+      type: 'update_note',
+      userId,
+      noteId,
+      payload: {
+        op: 'add_tags',
+        requisiteId,
+        tagIds: data.tagIds,
+      },
+    });
+
     return this.listRequisiteTags(userId, noteId, requisiteId);
   }
 
@@ -278,6 +325,17 @@ export class NotesProvider {
         requisiteId_tagId: { requisiteId, tagId },
       },
       data: { deletedAt: new Date() },
+    });
+
+    await this.actions.record({
+      type: 'update_note',
+      userId,
+      noteId,
+      payload: {
+        op: 'remove_tag',
+        requisiteId,
+        tagIds: [tagId],
+      },
     });
 
     return this.listRequisiteTags(userId, noteId, requisiteId);

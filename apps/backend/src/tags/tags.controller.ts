@@ -8,11 +8,14 @@ import {
   Param,
   Patch,
   Post,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { Tag } from '__prisma/generated/prisma/client';
+import type { PublicUser } from '__prisma/types/public-user';
 import { ZodError } from 'zod';
 import { AuthGuard } from '../auth/auth.guard';
+import { SessionUser } from '../auth/session-user.decorator';
 import {
   createTagSchema,
   updateTagSchema,
@@ -32,6 +35,13 @@ function parseBody<T>(schema: { parse: (data: unknown) => T }, body: unknown): T
   }
 }
 
+function requireUser(user: PublicUser | null): PublicUser {
+  if (!user) {
+    throw new UnauthorizedException();
+  }
+  return user;
+}
+
 @Controller('tags')
 @UseGuards(AuthGuard)
 export class TagsController {
@@ -43,9 +53,12 @@ export class TagsController {
   }
 
   @Post()
-  createTag(@Body() body: unknown): Promise<Tag> {
+  createTag(
+    @SessionUser() user: PublicUser | null,
+    @Body() body: unknown,
+  ): Promise<Tag> {
     const data: CreateTagDTO = parseBody(createTagSchema, body);
-    return this.tags.createTag(data);
+    return this.tags.createTag(requireUser(user).id, data);
   }
 
   @Get(':id')
@@ -54,13 +67,20 @@ export class TagsController {
   }
 
   @Patch(':id')
-  updateTag(@Param('id') id: string, @Body() body: unknown): Promise<Tag> {
+  updateTag(
+    @SessionUser() user: PublicUser | null,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ): Promise<Tag> {
     const data: UpdateTagDTO = parseBody(updateTagSchema, body);
-    return this.tags.updateTag(id, data);
+    return this.tags.updateTag(requireUser(user).id, id, data);
   }
 
   @Delete(':id')
-  deleteTag(@Param('id') id: string): Promise<Tag> {
-    return this.tags.deleteTag(id);
+  deleteTag(
+    @SessionUser() user: PublicUser | null,
+    @Param('id') id: string,
+  ): Promise<Tag> {
+    return this.tags.deleteTag(requireUser(user).id, id);
   }
 }
