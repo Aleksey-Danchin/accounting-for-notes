@@ -13,6 +13,9 @@ export const Route = createRootRoute({
           <Link to="/users" className="link link-hover">
             Users
           </Link>
+          <Link to="/auth-test" className="link link-hover">
+            Auth test
+          </Link>
         </nav>
         <Outlet />
       </main>

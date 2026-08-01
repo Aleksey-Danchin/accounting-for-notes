@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 import type { PrismaClient } from "../../generated/prisma/client.js";
 
 type UserSeedEntry = {
-  login: string;
+  email: string;
   password: string;
 };
 
@@ -21,17 +21,17 @@ function loadData(): UserSeedData {
 export async function seed(prisma: PrismaClient): Promise<void> {
   const { users } = loadData();
 
-  for (const { login, password } of users) {
+  for (const { email, password } of users) {
     const passwordHash = await bcrypt.hash(password, 10);
 
     await prisma.user.upsert({
-      where: { login },
+      where: { email },
       update: { passwordHash },
-      create: { login, passwordHash },
+      create: { email, passwordHash },
     });
   }
 
   console.log(
-    `Seeded ${users.length} users: ${users.map((u) => u.login).join(", ")}`,
+    `Seeded ${users.length} users: ${users.map((u) => u.email).join(", ")}`,
   );
 }

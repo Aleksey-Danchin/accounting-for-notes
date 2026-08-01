@@ -26,15 +26,23 @@ NestJS API. Stay inside `apps/backend` unless the task needs Prisma or infra.
 
 ## Conventions
 
-- Domain modules under `src/<domain>/`.
+- Domain modules under `src/<domain>/` (e.g. `auth/`, `redis/`, `users/`).
 - One concrete provider/service class — **no** separate abstract interface + `*Impl` pair unless explicitly requested.
 - Prefer Nest names from CLI (`*.provider.ts`, `*.service.ts`, `*.controller.ts`, `*.module.ts`).
-- DTOs and validation next to the controller or in `dto/`.
+- DTOs and zod validation next to the controller (e.g. `auth/dto.ts`) or in `dto/`.
 - Business logic in providers/services, not controllers.
-- Do not return secrets (e.g. `passwordHash`) from API providers — use `PublicUser` / explicit `select`.
+- Do not return secrets (e.g. `passwordHash`) from API providers — use `PublicUser` / Prisma Client `omit` / explicit `select`.
 - Tests: `*.spec.ts` next to code; e2e in `test/`.
 - Do not edit generated Prisma Client here — schema lives in `apps/prisma`.
-- Frontend may `import type` contracts from `__backend/...` (e.g. `UsersProvider` for `ReturnType<…>`).
+- Frontend may `import type` of Nest controllers from `__backend/...` and derive HTTP response types as `Awaited<ReturnType<SomeController['method']>>`. Declare explicit return types on controller methods so those contracts stay stable.
+- Prefer `import type` for type-only Nest imports (`CanActivate`, `OnModuleInit`, …) so frontend typecheck (`verbatimModuleSyntax`) stays clean when pulling controllers.
+
+## Auth / Redis
+
+- Sessions: opaque `access_token` / `refresh_token` cookies (httpOnly, Secure, SameSite=Lax, Domain from `COOKIE_DOMAIN`); Redis holds SHA-256 hashes — details in `redis` rule.
+- Module: `src/auth/` — login / logout / refresh / me; lazy `resolveSessionUser` middleware; `AuthGuard` (`strict` default true; `new AuthGuard({ strict: false })` allows anonymous); `@SessionUser()`.
+- Redis client: `src/redis/` (`ioredis`) — see `redis` rule.
+- Cookie names/paths/TTL are constants in `auth/auth.constants.ts` (not env), except Domain.
 
 ## Commands (from `apps/backend` on the host)
 
@@ -49,5 +57,4 @@ npm run test
 
 ## TODO
 
-- Auth / guards / pipes
 - API contracts and versioning

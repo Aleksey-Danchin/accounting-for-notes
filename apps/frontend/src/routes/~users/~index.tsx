@@ -31,7 +31,7 @@ function UsersPage() {
         <ul className="mt-4 divide-y">
           {users.map((user) => (
             <li key={user.id} className="py-2">
-              <strong>{user.login}</strong>
+              <strong>{user.email}</strong>
               <span className="text-base-content/60"> — {user.id}</span>
             </li>
           ))}

@@ -1,7 +1,7 @@
 {
   "users": [
-    { "login": "root", "password": "123" },
-    { "login": "admin", "password": "123" },
-    { "login": "user", "password": "123" }
+    { "email": "root@local", "password": "123" },
+    { "email": "admin@local", "password": "123" },
+    { "email": "user@local", "password": "123" }
   ]
 }

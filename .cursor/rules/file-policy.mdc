@@ -19,11 +19,13 @@ alwaysApply: true
 | Kind | Location |
 |------|----------|
 | Nest module / service / controller / provider | `apps/backend/src/<domain>/` — create via **host** `npx nest g …` only |
+| Auth DTO / zod schemas | `apps/backend/src/auth/dto.ts` (next to controller; same pattern for other domains) |
 | Frontend component / page | `apps/frontend/src/` — routes under `routes/`, shared under `global/`, services under `services/` |
+| Frontend auth session layer | `apps/frontend/src/services/auth/` |
 | Prisma model / migration / generated client | `apps/prisma/schema`, `migrations`, `generated/prisma` (generated gitignored) |
 | Prisma public types / seed | `apps/prisma/types/`, `apps/prisma/seed.ts`, `apps/prisma/seeders/` |
 | Dockerfile | `infra/docker/Dockerfile.{backend,frontend,prisma}` |
-| Compose | `infra/compose/` (e.g. `dev.yml`) |
+| Compose | `infra/compose/` (e.g. `dev.yml` — includes postgres, **redis**, apps, traefik) |
 | Traefik routes / TLS certs | `infra/traefik/dynamic/`, `infra/traefik/certs/` (certs gitignored) |
 | Dev scripts | `scripts/` (`dev-up.sh`, `dev-down.sh`, `prisma-migration`, `prisma-seed`, …) |
 | Cursor rules | `.cursor/rules/*.mdc` |

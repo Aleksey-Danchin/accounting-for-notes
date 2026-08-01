@@ -1,0 +1,33 @@
+---
+description: Redis session store conventions for local stack and Nest
+globs: apps/backend/src/redis/**,infra/compose/**
+alwaysApply: false
+---
+
+# Redis
+
+Session token store for auth. Compose service + Nest `RedisModule` (`ioredis`).
+
+## Compose / env
+
+- Service lives only in `infra/compose/` (e.g. `dev.yml`): `redis:7-alpine`, `requirepass`, healthcheck, volume, internal network `afn`.
+- Dev publishes host port `${REDIS_PORT:-6379}` for debugging.
+- Env (root `.env` / `.env.example`): `REDIS_PASSWORD`, `REDIS_PORT`. Backend also gets `REDIS_HOST=redis`, `REDIS_PORT=6379`, `REDIS_PASSWORD` from Compose.
+- Do not run ad-hoc Redis containers outside compose unless explicitly asked.
+
+## Nest client
+
+- Own module/provider under `apps/backend/src/redis/` (`ioredis`) — no `@nestjs-modules/ioredis` unless explicitly requested.
+- Connect on module init; `quit` on destroy.
+- Access Redis only through this provider from domain modules (e.g. auth).
+
+## Session key layout (auth)
+
+Plaintext tokens (40 chars) live only in httpOnly cookies. Redis stores **SHA-256 hashes**.
+
+- `auth:access:{accessHash}` — `{ sessionId, userId, refreshHash }`, TTL = access (5 min)
+- `auth:refresh:{refreshHash}` — `{ sessionId, userId, accessHash }`, TTL = refresh (7 days)
+- `auth:session:{sessionId}` — `{ userId, accessHash, refreshHash }`, TTL = refresh
+- `auth:user:{userId}:sessions` — SET of `sessionId`
+
+Do **not** cache full user objects in Redis — only `userId`. On logout / refresh rotation, delete the whole pair via session meta + `SREM` from the user index.

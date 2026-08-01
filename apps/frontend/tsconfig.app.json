@@ -15,6 +15,9 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    // Needed so `import type` of Nest controllers (ReturnType<Controller['method']>) typechecks.
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
 
     "paths": {
       "__frontend/*": ["./src/*"],
@@ -25,7 +28,6 @@
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"]

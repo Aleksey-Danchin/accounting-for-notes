@@ -12,20 +12,27 @@ Client app. Stay inside `apps/frontend` unless the task needs backend or Prisma.
 
 - Vite + React 19, TypeScript, ESLint (flat config)
 - TanStack Router (file routes under `src/routes/` with `~` prefix; generated tree in `src/global/routeTree.gen.ts`)
+- Route pages **only via directories**: `routes/~<segment>/~index.tsx` (e.g. `~users/~index.tsx`, `~auth-test/~index.tsx`). Do **not** use flat files like `~auth-test.tsx` for a path segment.
+- Root exceptions only: `~__root.tsx`, `~index.tsx` (home `/`)
 - TanStack Query (`src/global/queryClient.ts`)
 - Tailwind CSS 4 + DaisyUI (`src/index.css`)
 - HTTP: axios + concurrency limit in `src/services/api/` (`apiClient`, `apiConfig`)
+- Auth session: `src/services/auth/` (`authClient` with `withCredentials`, zustand store, `useSession`, `AuthGuard`, bootstrap)
 - Path aliases: `__frontend/*` → `src/*`, `__backend/*` → `../backend/*`, `__prisma/*` → `../prisma/*`
 - Vite `envDir` is the repo root; use `VITE_API_BASE_URL` (default `/api`) and optional `VITE_API_CONCURRENCY`
 - Compose: Vite bound to `0.0.0.0:5173`
+- **No `zod` dependency** — schemas live on backend; `import type` only via `__backend/...`
 
 ## Conventions
 
 - Prefer functional components; extract hooks/utils when logic repeats.
-- API calls go through `services/api` / feature helpers (e.g. `global/usersApi`) — do not scatter `fetch`/`axios` in UI.
-- Domain public types from `__prisma/types/...` (e.g. `PublicUser`); backend contracts via `__backend/...` type imports when needed.
-- Layout: `src/routes/` (pages), `src/global/` (router, query client, shared API helpers), `src/services/` (api and future domains).
-- Do not add session/auth interceptors until a session backend exists.
+- Domain API calls: general → `services/api` / feature helpers (e.g. `global/usersApi`); auth endpoints → `services/auth` (`authClient`), not the shared `apiClient`.
+- Do not add 401 refresh / queue interceptors on `apiClient` until the deferred HTTP manager (see `.dev/http-client-manager.md`).
+- **API response typing:** write `Awaited<ReturnType<SomeController['method']>>` **inline** at the call/annotation site (`import type { SomeController } from '__backend/src/.../….controller'`). Do **not** invent intermediate aliases (`type LoginResponse = …`) and do **not** hand-duplicate response shapes / `PublicUser` on the frontend for HTTP responses.
+- `tsconfig.app.json` keeps `experimentalDecorators` / `emitDecoratorMetadata` so Nest controller files typecheck when pulled in via those `import type`s (do not re-enable `erasableSyntaxOnly` while this pattern is used).
+- Request body types: `import type` from backend zod DTOs (e.g. `LoginDataDTO` from `__backend/src/auth/dto`).
+- Layout: `src/routes/` (pages), `src/global/` (router, query client, shared API helpers), `src/services/` (api, auth, future domains).
+- After successful login/logout: full `window.location.reload()` preserving the current URL.
 
 ## Commands (from `apps/frontend`)
 
@@ -39,5 +46,5 @@ npm run preview
 ## TODO
 
 - Naming and style conventions
-- Client-side auth / session (when backend session exists)
 - Feature folder layout beyond routes/global/services
+- Custom HTTP manager (concurrency + refresh queue) — `.dev/http-client-manager.md`

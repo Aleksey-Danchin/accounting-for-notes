@@ -1,4 +1,5 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import type { OnModuleDestroy } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from '__prisma/generated/prisma/client';
@@ -14,7 +15,10 @@ export class PrismaService extends PrismaClient implements OnModuleDestroy {
     }
 
     const pool = new Pool({ connectionString: url });
-    super({ adapter: new PrismaPg(pool) });
+    super({
+      adapter: new PrismaPg(pool),
+      omit: { user: { passwordHash: true } },
+    });
     this.pool = pool;
   }
 
