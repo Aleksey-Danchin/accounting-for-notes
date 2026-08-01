@@ -17,8 +17,8 @@ Client app. Stay inside `apps/frontend` unless the task needs backend or Prisma.
 - Default lazy pending UI: `global/PagePending.tsx`, registered as router `defaultPendingComponent` (DaisyUI spinner, centered in the remaining viewport under the nav). Without a route `loader`/`beforeLoad`, TanStack keeps the previous page visible during chunk fetch — hence the no-op loader on shells.
 - TanStack Query (`src/global/queryClient.ts`)
 - Tailwind CSS 4 + DaisyUI (`src/index.css`)
-- HTTP: axios + concurrency limit in `src/services/api/` (`apiClient`, `apiConfig`)
-- Auth session: `src/services/auth/` (`authClient` with `withCredentials`, zustand store, `useSession`, `AuthGuard`, bootstrap)
+- HTTP: `src/services/api/` — `httpManager` (queue, GET-concurrency, 401→refresh, multi-tab), facade `apiClient` (`withCredentials`); boot via `initHttpManager` (`/auth/check` + probe refresh). Spec: `.dev/http-client-manager.md`
+- Auth session: `src/services/auth/` (zustand store, `useSession`, `AuthGuard`, `AuthBootstrap`); all auth HTTP goes through `apiClient` (no separate auth axios client)
 - Path aliases: `__frontend/*` → `src/*`, `__backend/*` → `../backend/*`, `__prisma/*` → `../prisma/*`
 - Vite `envDir` is the repo root; use `VITE_API_BASE_URL` (default `/api`) and optional `VITE_API_CONCURRENCY`
 - Compose: Vite bound to `0.0.0.0:5173`
@@ -27,8 +27,8 @@ Client app. Stay inside `apps/frontend` unless the task needs backend or Prisma.
 ## Conventions
 
 - Prefer functional components; extract hooks/utils when logic repeats.
-- Domain API calls: general → `services/api` / feature helpers (e.g. `global/usersApi`); auth endpoints → `services/auth` (`authClient`), not the shared `apiClient`.
-- Do not add 401 refresh / queue interceptors on `apiClient` until the deferred HTTP manager (see `.dev/http-client-manager.md`).
+- Domain and auth API calls both use `apiClient` (`services/api`); auth helpers live under `services/auth` (`authApi`). Blacklist paths (`/auth/login`, `/auth/logout`, `/auth/refresh`, `/auth/check`) skip hold/auto-refresh.
+- Refresh failure is force logout: reject queue + `window.location.reload()` (same as login/logout reload); multi-tab via Web Locks + BroadcastChannel — see `.dev/http-client-manager.md`.
 - **API response typing:** write `Awaited<ReturnType<SomeController['method']>>` **inline** at the call/annotation site (`import type { SomeController } from '__backend/src/.../….controller'`). Do **not** invent intermediate aliases (`type LoginResponse = …`) and do **not** hand-duplicate response shapes / `PublicUser` on the frontend for HTTP responses.
 - `tsconfig.app.json` keeps `experimentalDecorators` / `emitDecoratorMetadata` so Nest controller files typecheck when pulled in via those `import type`s (do not re-enable `erasableSyntaxOnly` while this pattern is used).
 - Request body types: `import type` from backend zod DTOs (e.g. `LoginDataDTO` from `__backend/src/auth/dto`).
@@ -48,4 +48,3 @@ npm run preview
 
 - Naming and style conventions
 - Feature folder layout beyond routes/global/services
-- Custom HTTP manager (concurrency + refresh queue) — `.dev/http-client-manager.md`

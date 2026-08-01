@@ -20,13 +20,16 @@ function UsersPage() {
   return (
     <section className="users-page">
       <h1 className="mb-6 text-2xl font-semibold">Users</h1>
+
       {isPending && <p>Loading…</p>}
+
       {error && (
         <p role="alert">
           Failed to load users:{" "}
           {error instanceof Error ? error.message : "Request failed"}
         </p>
       )}
+
       {users && (
         <ul className="mt-4 divide-y">
           {users.map((user) => (

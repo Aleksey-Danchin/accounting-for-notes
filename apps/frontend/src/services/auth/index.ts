@@ -1,5 +1,4 @@
-export { authClient } from './authClient';
-export { loginRequest, logoutRequest, meRequest } from './authApi';
+export { loginRequest, logoutRequest, meRequest, refreshRequest, checkRequest } from './authApi';
 export { useSessionStore } from './sessionStore';
 export type { SessionStatus, SessionFlags } from './sessionStore';
 export { useSession } from './useSession';

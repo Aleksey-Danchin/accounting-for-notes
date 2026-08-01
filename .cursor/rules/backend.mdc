@@ -40,7 +40,7 @@ NestJS API. Stay inside `apps/backend` unless the task needs Prisma or infra.
 ## Auth / Redis
 
 - Sessions: opaque `access_token` / `refresh_token` cookies (httpOnly, Secure, SameSite=Lax, Domain from `COOKIE_DOMAIN`); Redis holds SHA-256 hashes — details in `redis` rule.
-- Module: `src/auth/` — login / logout / refresh / me; lazy `resolveSessionUser` middleware; `AuthGuard` (`strict` default true; `new AuthGuard({ strict: false })` allows anonymous); `@SessionUser()`.
+- Module: `src/auth/` — login / logout / refresh / check / me; `GET /auth/check` returns `0|1` by access-session presence (no required guard); lazy `resolveSessionUser` middleware; `AuthGuard` (`strict` default true; `new AuthGuard({ strict: false })` allows anonymous); `@SessionUser()`.
 - Redis client: `src/redis/` (`ioredis`) — see `redis` rule.
 - Cookie names/paths/TTL are constants in `auth/auth.constants.ts` (not env), except Domain.
 

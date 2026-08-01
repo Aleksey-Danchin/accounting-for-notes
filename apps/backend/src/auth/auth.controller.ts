@@ -19,6 +19,7 @@ import { AuthProvider } from './auth.provider';
 import { clearAuthCookies, setAuthCookies } from './cookies';
 import { loginSchema, type LoginDataDTO } from './dto';
 import { SessionUser } from './session-user.decorator';
+import type { RequestWithSession } from './session.types';
 
 @Controller('auth')
 export class AuthController {
@@ -68,6 +69,12 @@ export class AuthController {
     );
     setAuthCookies(res, accessToken, refreshToken);
     return { ok: true };
+  }
+
+  @Get('check')
+  async check(@Req() req: RequestWithSession): Promise<0 | 1> {
+    const user = await req.resolveSessionUser();
+    return user ? 1 : 0;
   }
 
   @Get('me')
