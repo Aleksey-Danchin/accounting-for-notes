@@ -1,0 +1,35 @@
+model Action {
+    id String @id @default(cuid())
+
+    type    ActionType
+    payload Json?
+
+    user   User?   @relation(fields: [userId], references: [id])
+    userId String?
+
+    note   Note?   @relation(fields: [noteId], references: [id])
+    noteId String?
+
+    tag   Tag?    @relation(fields: [tagId], references: [id])
+    tagId String?
+
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+
+    @@index([userId])
+}
+
+enum ActionType {
+    login
+    login_failed
+    logout
+
+    create_note
+    update_note
+    delete_note
+
+    create_tag
+    update_tag
+    delete_tag
+}

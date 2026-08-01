@@ -11,6 +11,8 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
-    "@types/pg": "^8.20.0"
+    "@types/pg": "^8.20.0",
+    "prisma-json-types-generator": "^5.1.1",
+    "typescript": "~5.9.3"
   }
 }

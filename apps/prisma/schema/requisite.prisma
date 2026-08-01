@@ -1,0 +1,39 @@
+model Requisite {
+    id String @id @default(cuid())
+
+    name String
+    type RequisiteType
+    /// [RequisitePayload]
+    payload Json?
+    public  Boolean
+
+    notes NoteRequisite[]
+    tags  RequisiteTag[]
+
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+}
+
+enum RequisiteType {
+    title
+    label
+    text
+    bool
+    number
+    tags
+}
+
+model RequisiteTag {
+    requisiteId String
+    requisite   Requisite @relation(fields: [requisiteId], references: [id])
+
+    tagId String
+    tag   Tag    @relation(fields: [tagId], references: [id])
+
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+
+    @@id([requisiteId, tagId])
+}

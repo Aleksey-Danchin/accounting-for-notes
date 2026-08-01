@@ -11,7 +11,10 @@
 import { Route as rootRouteImport } from './../routes/~__root'
 import { Route as IndexRouteImport } from './../routes/~index'
 import { Route as AuthTestIndexRouteImport } from './../routes/~auth-test/~index'
+import { Route as NotesIndexRouteImport } from './../routes/~notes/~index'
+import { Route as TagsIndexRouteImport } from './../routes/~tags/~index'
 import { Route as UsersIndexRouteImport } from './../routes/~users/~index'
+import { Route as NotesNoteIdIndexRouteImport } from './../routes/~notes/~$noteId/~index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -25,6 +28,20 @@ const AuthTestIndexRoute = AuthTestIndexRouteImport.update({
 } as any).lazy(() =>
   import('./../routes/~auth-test/~index.lazy').then((d) => d.Route),
 )
+const NotesIndexRoute = NotesIndexRouteImport.update({
+  id: '/notes/',
+  path: '/notes/',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./../routes/~notes/~index.lazy').then((d) => d.Route),
+)
+const TagsIndexRoute = TagsIndexRouteImport.update({
+  id: '/tags/',
+  path: '/tags/',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./../routes/~tags/~index.lazy').then((d) => d.Route),
+)
 const UsersIndexRoute = UsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -32,35 +49,62 @@ const UsersIndexRoute = UsersIndexRouteImport.update({
 } as any).lazy(() =>
   import('./../routes/~users/~index.lazy').then((d) => d.Route),
 )
+const NotesNoteIdIndexRoute = NotesNoteIdIndexRouteImport.update({
+  id: '/notes/$noteId/',
+  path: '/notes/$noteId/',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./../routes/~notes/~$noteId/~index.lazy').then((d) => d.Route),
+)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth-test/': typeof AuthTestIndexRoute
+  '/notes/': typeof NotesIndexRoute
+  '/tags/': typeof TagsIndexRoute
   '/users/': typeof UsersIndexRoute
+  '/notes/$noteId/': typeof NotesNoteIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth-test': typeof AuthTestIndexRoute
+  '/notes': typeof NotesIndexRoute
+  '/tags': typeof TagsIndexRoute
   '/users': typeof UsersIndexRoute
+  '/notes/$noteId': typeof NotesNoteIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth-test/': typeof AuthTestIndexRoute
+  '/notes/': typeof NotesIndexRoute
+  '/tags/': typeof TagsIndexRoute
   '/users/': typeof UsersIndexRoute
+  '/notes/$noteId/': typeof NotesNoteIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth-test/' | '/users/'
+  fullPaths:
+    '/' | '/auth-test/' | '/notes/' | '/tags/' | '/users/' | '/notes/$noteId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth-test' | '/users'
-  id: '__root__' | '/' | '/auth-test/' | '/users/'
+  to: '/' | '/auth-test' | '/notes' | '/tags' | '/users' | '/notes/$noteId'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth-test/'
+    | '/notes/'
+    | '/tags/'
+    | '/users/'
+    | '/notes/$noteId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthTestIndexRoute: typeof AuthTestIndexRoute
+  NotesIndexRoute: typeof NotesIndexRoute
+  TagsIndexRoute: typeof TagsIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
+  NotesNoteIdIndexRoute: typeof NotesNoteIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -79,11 +123,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthTestIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notes/': {
+      id: '/notes/'
+      path: '/notes'
+      fullPath: '/notes/'
+      preLoaderRoute: typeof NotesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tags/': {
+      id: '/tags/'
+      path: '/tags'
+      fullPath: '/tags/'
+      preLoaderRoute: typeof TagsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/users/': {
       id: '/users/'
       path: '/users'
       fullPath: '/users/'
       preLoaderRoute: typeof UsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes/$noteId/': {
+      id: '/notes/$noteId/'
+      path: '/notes/$noteId'
+      fullPath: '/notes/$noteId/'
+      preLoaderRoute: typeof NotesNoteIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -92,7 +157,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthTestIndexRoute: AuthTestIndexRoute,
+  NotesIndexRoute: NotesIndexRoute,
+  TagsIndexRoute: TagsIndexRoute,
   UsersIndexRoute: UsersIndexRoute,
+  NotesNoteIdIndexRoute: NotesNoteIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
