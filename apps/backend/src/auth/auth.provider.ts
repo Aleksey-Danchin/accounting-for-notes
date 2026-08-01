@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import type { PublicUser } from '__prisma/types/public-user';
+import { ActionsProvider } from '../actions/actions.provider';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisProvider } from '../redis/redis.provider';
 import {
@@ -14,6 +15,7 @@ import {
   userSessionsKey,
 } from './auth.constants';
 import type { LoginDataDTO } from './dto';
+import type { AuthRequestMeta } from './request-meta';
 
 type AccessPayload = {
   sessionId: string;
@@ -41,34 +43,57 @@ export class AuthProvider {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(RedisProvider) private readonly redis: RedisProvider,
+    @Inject(ActionsProvider) private readonly actions: ActionsProvider,
   ) {}
 
-  async login(data: LoginDataDTO): Promise<{
+  async login(
+    data: LoginDataDTO,
+    meta: AuthRequestMeta = {},
+  ): Promise<{
     user: PublicUser;
     accessToken: string;
     refreshToken: string;
   }> {
+    const email = data.email;
+    const clientMeta: AuthRequestMeta = { ...meta, email };
     const userWithHash = await this.prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email },
       omit: { passwordHash: false },
     });
 
     if (!userWithHash) {
+      await this.actions.record({
+        type: 'login_failed',
+        payload: clientMeta,
+      });
       throw new UnauthorizedException('Invalid email or password');
     }
 
     const ok = await bcrypt.compare(data.password, userWithHash.passwordHash);
     if (!ok) {
+      await this.actions.record({
+        type: 'login_failed',
+        userId: userWithHash.id,
+        payload: clientMeta,
+      });
       throw new UnauthorizedException('Invalid email or password');
     }
 
     const { passwordHash: _passwordHash, ...user } = userWithHash;
     void _passwordHash;
     const tokens = await this.createSession(user.id);
+    await this.actions.record({
+      type: 'login',
+      userId: user.id,
+      payload: clientMeta,
+    });
     return { user, ...tokens };
   }
 
-  async logout(accessToken: string | undefined): Promise<void> {
+  async logout(
+    accessToken: string | undefined,
+    meta: AuthRequestMeta = {},
+  ): Promise<void> {
     if (!accessToken) {
       return;
     }
@@ -77,8 +102,21 @@ export class AuthProvider {
     if (!raw) {
       return;
     }
-    const payload = JSON.parse(raw) as AccessPayload;
-    await this.destroySession(payload.sessionId);
+    const access = JSON.parse(raw) as AccessPayload;
+    await this.destroySession(access.sessionId);
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: access.userId },
+      select: { email: true },
+    });
+    await this.actions.record({
+      type: 'logout',
+      userId: access.userId,
+      payload: {
+        ...meta,
+        ...(user?.email ? { email: user.email } : {}),
+      },
+    });
   }
 
   async refresh(refreshToken: string | undefined): Promise<{

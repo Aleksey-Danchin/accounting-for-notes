@@ -3,6 +3,7 @@ import type { OnModuleDestroy } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from '__prisma/generated/prisma/client';
+import '__prisma/types/prisma-json';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleDestroy {

@@ -1,0 +1,27 @@
+model Note {
+    id String @id @default(cuid())
+
+    userId String
+    user   User   @relation(fields: [userId], references: [id])
+
+    requisites NoteRequisite[]
+    actions    Action[]
+
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+}
+
+model NoteRequisite {
+    noteId String
+    note   Note   @relation(fields: [noteId], references: [id])
+
+    requisiteId String
+    requisite   Requisite @relation(fields: [requisiteId], references: [id])
+
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+
+    @@id([noteId, requisiteId])
+}

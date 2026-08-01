@@ -1,15 +1,14 @@
-model User {
+model Tag {
     id String @id @default(cuid())
 
-    email        String @unique
-    passwordHash String
+    name        String
+    color       String
+    description String
 
-    actions Action[]
-    notes   Note[]
+    actions    Action[]
+    requisites RequisiteTag[]
 
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
     deletedAt DateTime?
-
-    @@index([email])
 }

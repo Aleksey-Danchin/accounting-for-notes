@@ -18,6 +18,7 @@ import { AuthGuard } from './auth.guard';
 import { AuthProvider } from './auth.provider';
 import { clearAuthCookies, setAuthCookies } from './cookies';
 import { loginSchema, type LoginDataDTO } from './dto';
+import { authMetaFromRequest } from './request-meta';
 import { SessionUser } from './session-user.decorator';
 import type { RequestWithSession } from './session.types';
 
@@ -28,6 +29,7 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() body: unknown,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ user: PublicUser }> {
     let data: LoginDataDTO;
@@ -40,7 +42,10 @@ export class AuthController {
       throw error;
     }
 
-    const { user, accessToken, refreshToken } = await this.auth.login(data);
+    const { user, accessToken, refreshToken } = await this.auth.login(
+      data,
+      authMetaFromRequest(req, { email: data.email }),
+    );
     setAuthCookies(res, accessToken, refreshToken);
     return { user };
   }
@@ -52,7 +57,10 @@ export class AuthController {
   ): Promise<{ ok: true }> {
     const cookies = req.cookies as
       Record<string, string | undefined> | undefined;
-    await this.auth.logout(cookies?.[ACCESS_COOKIE]);
+    await this.auth.logout(
+      cookies?.[ACCESS_COOKIE],
+      authMetaFromRequest(req),
+    );
     clearAuthCookies(res);
     return { ok: true };
   }
