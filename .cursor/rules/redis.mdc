@@ -10,7 +10,7 @@ Session token store for auth. Compose service + Nest `RedisModule` (`ioredis`).
 
 ## Compose / env
 
-- Service lives only in `infra/compose/` (e.g. `dev.yml`): `redis:7-alpine`, `requirepass`, healthcheck, volume, internal network `afn`.
+- Service lives only in `infra/compose/` (e.g. `dev.yml`): `redis:8-alpine`, `requirepass`, healthcheck, volume, internal network `afn`.
 - Dev publishes host port `${REDIS_PORT:-6379}` for debugging.
 - Env (root `.env` / `.env.example`): `REDIS_PASSWORD`, `REDIS_PORT`. Backend also gets `REDIS_HOST=redis`, `REDIS_PORT=6379`, `REDIS_PASSWORD` from Compose.
 - Do not run ad-hoc Redis containers outside compose unless explicitly asked.
