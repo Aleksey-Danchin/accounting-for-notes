@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router';
+import type { ReactNode } from 'react';
 import {
-  payloadDescription,
   payloadValue,
   publicRequisites,
   type NoteDto,
+  type RequisiteDto,
 } from './noteUtils';
 
 type NoteCardProps = {
@@ -17,37 +18,70 @@ export function NoteCard({ note }: NoteCardProps) {
     <Link
       to="/notes/$noteId"
       params={{ noteId: note.id }}
-      className="block border-b border-base-300 py-4 transition-colors hover:bg-base-200/40"
+      className="block h-full rounded-lg border border-base-300 p-3 transition-colors hover:bg-base-200/40"
     >
-      <p className="text-xs text-base-content/50">{note.id}</p>
       {fields.length === 0 ? (
-        <p className="mt-1 text-base-content/60">No public fields</p>
+        <p className="text-sm text-base-content/50">Empty</p>
       ) : (
-        <ul className="mt-2 space-y-1">
+        <div className="flex flex-col gap-2">
           {fields.map((requisite) => (
-            <li key={requisite.id}>
-              <span className="font-medium">{requisite.name}</span>
-              {requisite.type === 'tags' ? (
-                <span className="ml-2 text-sm text-base-content/70">
-                  {requisite.tags
-                    .map((link) => link.tag.name)
-                    .filter(Boolean)
-                    .join(', ') || '—'}
-                </span>
-              ) : (
-                <span className="ml-2 text-sm text-base-content/70">
-                  {payloadValue(requisite) || '—'}
-                </span>
-              )}
-              {payloadDescription(requisite) ? (
-                <span className="ml-2 text-xs text-base-content/50">
-                  ({payloadDescription(requisite)})
-                </span>
-              ) : null}
-            </li>
+            <PublicRequisiteView key={requisite.id} requisite={requisite} />
           ))}
-        </ul>
+        </div>
       )}
     </Link>
   );
+}
+
+function PublicRequisiteView({
+  requisite,
+}: {
+  requisite: RequisiteDto;
+}): ReactNode {
+  switch (requisite.type) {
+    case 'title': {
+      const value = payloadValue(requisite);
+      if (!value) return null;
+      return (
+        <p className="line-clamp-2 text-base font-semibold leading-snug">
+          {value}
+        </p>
+      );
+    }
+    case 'text': {
+      const value = payloadValue(requisite);
+      if (!value) return null;
+      return (
+        <p className="line-clamp-3 text-sm leading-snug text-base-content/70">
+          {value}
+        </p>
+      );
+    }
+    case 'tags': {
+      const tags = requisite.tags
+        .map((link) => link.tag)
+        .filter((tag) => Boolean(tag.name));
+      if (tags.length === 0) return null;
+      return (
+        <div className="flex max-h-16 flex-wrap gap-1 overflow-hidden">
+          {tags.map((tag) => (
+            <span
+              key={tag.id}
+              className="badge badge-sm border bg-transparent font-normal"
+              style={{ borderColor: tag.color }}
+            >
+              {tag.name}
+            </span>
+          ))}
+        </div>
+      );
+    }
+    default: {
+      const value = payloadValue(requisite);
+      if (!value) return null;
+      return (
+        <p className="line-clamp-2 text-sm text-base-content/70">{value}</p>
+      );
+    }
+  }
 }
